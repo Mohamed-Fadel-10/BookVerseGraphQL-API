@@ -1,5 +1,6 @@
 ﻿using BookVerseGraphQL.Data;
 using BookVerseGraphQL.Models;
+using BookVerseGraphQL.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookVerseGraphQL.GraphQL.Query
@@ -9,13 +10,13 @@ namespace BookVerseGraphQL.GraphQL.Query
     {
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Book> Books([Service] Context context)
-            => context.Books;
-
+        public async Task<IQueryable<Book>> Books([Service] IGenericRepository<Book> repository)
+            => await repository.GetAllAsync();
+         
         [UseFiltering]
         [UseSorting]
-        public async Task<Book?> BookById([Service] Context context, int id)
-            => await context.Books.FirstOrDefaultAsync(b => b.Id == id);
+        public async Task<Book?> BookById([Service] IGenericRepository<Book> repository, int id)
+            => await repository.GetByIDAsync(id);
     }
 
 }

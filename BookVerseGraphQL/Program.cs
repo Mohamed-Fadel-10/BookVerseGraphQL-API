@@ -1,6 +1,7 @@
 using BookVerseGraphQL.Data;
 using BookVerseGraphQL.GraphQL.Mutation;
 using BookVerseGraphQL.GraphQL.Query;
+using BookVerseGraphQL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -15,7 +16,6 @@ builder.Services.AddSwaggerGen();
 
 
 // Register PostrgeSQl
-
 
 builder.Services.AddDbContext<Context>(option =>
 {
@@ -37,7 +37,7 @@ builder.Services
 
 
 
-
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddCors(options =>
 {

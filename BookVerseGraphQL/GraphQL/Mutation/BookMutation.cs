@@ -1,7 +1,9 @@
 ﻿using BookVerseGraphQL.Data;
 using BookVerseGraphQL.GraphQL.Types;
 using BookVerseGraphQL.Models;
+using BookVerseGraphQL.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace BookVerseGraphQL.GraphQL.Mutation
 {
@@ -9,48 +11,44 @@ namespace BookVerseGraphQL.GraphQL.Mutation
     public class BookMutation
     {
         [GraphQLDescription("Add a new book to the collection.")]
-        public async Task<Book> AddBook([Service] Context context, BookType book)
+        public async Task<Book> AddBook([Service] IGenericRepository<Book> repository, BookType book)
         {
-            var newBook = new Book
+            var mutationAdd= await repository.AddAsync(new Book {
+                Title=book.Title,
+                AuthorId=(int)book.AuthorId
+            });
+
+            return new Book
             {
-                Title = book.Title,
-                AuthorId = book.AuthorId,
+                Id=mutationAdd.Id,
+                Title = mutationAdd.Title,
+                AuthorId = (int)mutationAdd.AuthorId,
             };
-
-            await context.Books.AddAsync(newBook);
-            await context.SaveChangesAsync();
-
-            return newBook;
         }
 
         [GraphQLDescription("Update an existing book.")]
-        public async Task<Book?> UpdateBook([Service] Context context, int id, BookType book)
+        public async Task<Book?> UpdateBook([Service] IGenericRepository<Book> repository, int id,BookType book)
         {
-            var existingBook = await context.Books.FindAsync(id);
-            if (existingBook == null)
+            var mutationUpdate = await repository.UpdateAsync(new Book
             {
-                return null;
-            }
+                Title = book.Title,
+                AuthorId = (int)book.AuthorId
+            },
+              id);
+            return new Book
+            { 
+                Id=mutationUpdate.Id,
+                Title=mutationUpdate.Title,
+                AuthorId= (int)mutationUpdate.AuthorId,
+            };
 
-            existingBook.Title = book.Title;
-            existingBook.AuthorId = book.AuthorId;
-
-            await context.SaveChangesAsync();
-            return existingBook;
         }
 
         [GraphQLDescription("Delete an existing book.")]
-        public async Task<bool> DeleteBook([Service] Context context, int id)
+        public bool DeleteBook([Service] IGenericRepository<Book> repository, int id)
         {
-            var book = await context.Books.FindAsync(id);
-            if (book == null)
-            {
-                return false;
-            }
+            return  repository.Delete(id);
 
-            context.Books.Remove(book);
-            await context.SaveChangesAsync();
-            return true;
         }
     }
 
